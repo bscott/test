@@ -11,14 +11,21 @@ import(
 	"fmt"
 )
 
+func RootHandler(resp http.ResponseWriter, req *http.Request) {
+	resp.Write([]byte("HOME"))
+	log.Debug("RootHandler Invoked")
+}
+
 func VersionHandler(resp http.ResponseWriter, req *http.Request) {
 	resp.WriteHeader(http.StatusOK)
 	resp.Write([]byte("CHATAPI_VERSION"))
+	log.Debug("VersionHandler Invoked")
 }
 
 func HealthcheckHandler(resp http.ResponseWriter, req *http.Request) {
 	resp.WriteHeader(http.StatusOK)
 	resp.Write([]byte("HEALTHCHECK"))
+	log.Debug("HealthCheckHandler Invoked")
 }
 
 // Main function, start of the application
@@ -38,8 +45,15 @@ func main() {
 			Method:      "GET",
 			Pattern:     "/api/status",
 			HandlerFunc: HealthcheckHandler,
+		},
+		Route{
+			Name:	"Root",
+			Method:	"GET",
+			Pattern: "/",
+			HandlerFunc: RootHandler,
 		}})
 
+	// Setup some port variables
 	port := os.Getenv("CHATAPI_HTTP_PORT")
 	port_regex_str := "^[0-9]+$"
 	port_regex, err := regexp.Compile(port_regex_str)
@@ -56,9 +70,12 @@ func main() {
 	}
 
 	host := os.Getenv("CHATAPI_HTTP_HOST")
+
 	if host == "" {
 		host = "0.0.0.0"
 	}
+
+	// Start the API Server
 	log.Info(fmt.Sprintf("Serving ChatOps API on %s:%s", host, port))
 	log.Fatal(http.ListenAndServe(fmt.Sprintf("%s:%s", host, port), router))
 
